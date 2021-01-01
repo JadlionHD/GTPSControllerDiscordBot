@@ -1,15 +1,25 @@
-# GTPSControllerDiscordBot
-With this application, you can control your own private server, using Discord Bot!
-<br /> Created By = GuckTubeYT
-<br /> Helped by = Clayne and JadlionHD
-<br />
+# GTPSControllerDiscordBot ![GitHub](https://img.shields.io/github/license/GuckTubeYT/GTPSControllerDiscordBot?style=flat-square)
+![Website](https://img.shields.io/website?down_color=red&down_message=Suspended&style=flat-square&up_color=green&up_message=Uptime&url=http%3A%2F%2Fgrowtopia1.com)
+<br>
+![Helper](https://img.shields.io/badge/Helper-JadlionHD%2C%20Clayne%2C%20Fikasm-blueviolet)
+<br>
+<br>
+![Node](https://img.shields.io/badge/NODEJS-Stable-orange)
 <br /> Remember
 <br />Do not sell this application, because this application already open source.
 <br />Do not change Creator name, to your own name.
-<br />If you see someone who sell the application or change creator name, Please DM GuckTubeYT#5000, Clayne#1000, or JadlionHD#0987
+<br />If you see someone who sell the application or change creator name, Please DM GuckTubeYT#3123 or iFika#6127
+# How to Use
+1. Use VPS/Server Realtime For Issue Performance.
+2. Download NodeJS (Stable) = https://nodejs.org/en/download/ ![Node](https://img.shields.io/badge/NODEJS-Stable-orange)
+2. Put This app, to your GTPS Folder
+3. Setting on config.json
+4. Press install.bat
+5. When done installing, press start.bat
 # Dependencies
 - Node JS
 - Discord.js
+- bcrpyt (Hashing Password)
 ## Version 1.0
 - This Repository just created
 - Turn On/Off
@@ -31,5 +41,19 @@ With this application, you can control your own private server, using Discord Bo
 ## Version 6.0
 - Added package.json (Thanks to JadlionHD)
 - Added Change Password system (Thanks to JadlionHD)
-- Added give gems (BETA)
-- Added give level (BETA)
+- Added give gems = Current gems + new gems
+- Added give level = Current Level + New Level
+- Added give role
+## Version 7.0
+- Added show gems
+- Support gemdb folder
+- Added showxp
+- Added editmaintenance
+- Adding logs (Showing Logs)
+- Adding givewl
+## Version 7.1
+- Update Batch File To Nice Design
+## Version 8.0
+- Added Show level
+- Added status
+- Updated count command (Added size player and worlds)

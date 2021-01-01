@@ -1,8 +1,11 @@
 { 
     "token"  : "Your Token Bot",
     "prefix" : "gt!",
-    "world" : "world",
-    "player" : "player",
+    "exegtps" : "server.exe",
+    "world" : "worlds",
+    "guild" : "guilds",
+    "player" : "players",
     "role" : "Server Creator",
-    "sdata" : "C:\\xampp\\htdocs\\growtopia\\server_data.php"
-  }
+    "sdata" : "C:\\xampp\\htdocs\\growtopia\\server_data.php",
+    "gemfolder" : "gemdb"
+}

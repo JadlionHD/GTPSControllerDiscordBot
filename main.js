@@ -1,8 +1,16 @@
 /*
 * Coded by: GuckTube YT
-* Helped by: Clayne and JadlionHD
+* Helped by: Clayne, JadlionHD and Fika
 * Credit Discord Bot example Code: eslachance
+* Dont forget to Credit me
 */
+
+/*
+* GNU License (C) 2020 GuckTubeYT Project
+* This Licensed With Public. They All Leaked With Gotten TakeDown DMCA By Github.
+* We Do Not Responsible With They All TakeDown DMCA.
+*/
+
 const Discord = require("discord.js");
 const { exec } = require("child_process");
 const kill = require("child_process").exec
@@ -11,9 +19,69 @@ const client = new Discord.Client();
 const config = require("./config.json");
 const path = require("path");
 const bcrypt = require("bcrypt");
+const { allowedNodeEnvironmentFlags } = require("process");
+
+const getAllFiles = function(dirPath, arrayOfFiles) {
+  files = fs.readdirSync(dirPath)
+
+  arrayOfFiles = arrayOfFiles || []
+
+  files.forEach(function(file) {
+    if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+      arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles)
+    } else {
+      arrayOfFiles.push(path.join(__dirname, dirPath, file))
+    }
+  })
+
+  return arrayOfFiles
+}
+
+const convertBytes = function(bytes) {
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"]
+
+  if (bytes == 0) {
+    return "n/a"
+  }
+
+  const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)))
+
+  if (i == 0) {
+    return bytes + " " + sizes[i]
+  }
+
+  return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i]
+}
+
+const getTotalSize = function(directoryPath) {
+  const arrayOfFiles = getAllFiles(directoryPath)
+
+  let totalSize = 0
+
+  arrayOfFiles.forEach(function(filePath) {
+    totalSize += fs.statSync(filePath).size
+  })
+
+  return convertBytes(totalSize)
+}
+
+const isRunning = (query, cb) => {
+  let platform = process.platform;
+  let cmd = '';
+  switch (platform) {
+      case 'win32' : cmd = `tasklist`; break;
+      case 'darwin' : cmd = `ps -ax | grep ${query}`; break;
+      case 'linux' : cmd = `ps -A`; break;
+      default: break;
+  }
+  kill(cmd, (err, stdout, stderr) => {
+      cb(stdout.toLowerCase().indexOf(query.toLowerCase()) > -1);
+  });
+}
+
 
 client.on("ready", () => {
-  console.log(`Bot is Online Now!`); 
+  console.log(`Bot is Online Now!`);
   client.user.setActivity(`GTPSController By GuckTube YT`);
 });
 
@@ -25,28 +93,47 @@ client.on("message", async message => {
   let pfix = config.prefix
   const pf = `${pfix}`
   if(command === "help") {
-    message.channel.send("```" + pf + "start (Start the server) (Owner Only)\n" + pf + "stop (Stop the server) (Owner Only)\n" + pf + "count (Count The Players and Worlds)\n" + pf + "maintenance [on/off] (Maintenance Switch) (Owner Only)\n" + pf + "wdelete [World] (Delete World) (Owner Only)\n" + pf + "pdelete [Player] (Delete Player) (Owner Only)\n" + pf + "roll[all, player, world] (Rollback world, player, all) (Owner Only)\n" + pf + "forgotpass [Player] [New Password] (Changing Password) (Owner Only)\n" + pf + "givegems [Player] [Gems Amount] (Giving Gems) (Owner Only)\n" + pf + "givelevel [Player] [level] (Giving level) (Owner Only)```");
+    if(message.member.roles.cache.some(r=>[config.role].includes(r.name)) )
+      return message.channel.send("```" + pf + "start (Start the server)\n" + pf + "stop (Stop the server)\n" + pf + "count (Count The Players and Worlds and size players and world)\n" + pf + "maintenance [on/off] (Maintenance Switch)\n" + pf + "wdelete [World] (Delete World)\n" + pf + "pdelete [Player] (Delete Player)\n" + pf + "roll[all, player, world] (Rollback world, player, all)\n" + pf + "forgotpass [Player] [New Password] (Changing Password)\n" + pf + "givegems [Player] [Gems Amount] (Giving Gems)\n" + pf + "givelevel [Player] [level] (Giving level)\n" + pf + "giverole [Player] [Role Number] (Give Role)\n" + pf + "showgem [Player] (Showing gems Player)\n" + pf + "givexp [Player] [Gems Amount] (Giving XP)\n" + pf + "showxp [Player] (Showing XP Player)\n" + pf + "editmaintenance [Text Maintenance] (Edit text maintenance)\n" + pf + "logs [File Logs.txt] (Showing logs)\n" + pf + "givewl [Player] [Amount WL] (Giving WL)\n" + pf + "status (Check Status Server)\n" + pf + "showlevel [Player] (Showing Player Level)```");
+    else
+    message.channel.send("```" + pf + "count (Count The Players and Worlds and size players and world)\n" + pf + "showxp [Player] (Showing XP Player)\n" + pf + "showgem [Player] (Showing gems Player)\n" + pf + "status (Check Status Server)\n" + pf + "showlevel [Player] (Showing Player Level)```");
   }
 
   if(command === "start") {
     if(!message.member.roles.cache.some(r=>[config.role].includes(r.name)) )
       return message.reply("Sorry, you don't have permissions to use this!");
-      const m = await message.channel.send("Please Wait...");
-        fs.access("enet.exe", (err) => {
+        fs.access(config.exegtps, (err) => {
           if (err)
           {
-          return m.edit("enet.exe Not Found! Please put this app into your gtps folder\nIf it still error, change your gtps exe, to your enet.exe")
+          return message.channel.send(config.exegtps + " Not Found! Please set on config.json")
           }
-            exec("start enet.exe")
-          m.edit("Server is UP")
+            exec(`start "${config.exegtps}"`)
+          return message.channel.send("Server is UP")
         });
-   }
+    }
 
   if(command === "stop") {
     if(!message.member.roles.cache.some(r=>[config.role].includes(r.name)) )
       return message.reply("Sorry, you don't have permissions to use this!");
-      kill("taskkill /f /im enet.exe")
-      message.channel.send("Server Has Been Stopped!");
+      kill(`taskkill /f /im "${config.exegtps}"`)
+    return message.channel.send("Server Has Been Stopped!");
+  }
+
+  if (command === "status")
+  {
+    const m = await message.channel.send("Please wait...")
+    isRunning(config.exegtps, (status) => {
+      if (status == true)
+      {
+        m.edit("The server is UP")
+        return;
+      }
+      else
+      {
+        m.edit("The server is DOWN")
+        return;
+      }
+  })
   }
 
   if(command === "count") {
@@ -63,7 +150,9 @@ client.on("message", async message => {
       }
       const f1 = files.length;
       const f2 = files1.length;
-      m.edit("Player Count = " + f1 + "\nWorlds Count = " + f2);
+      const sf1 = getTotalSize(config.player)
+      const sf2 = getTotalSize(config.world)
+    return m.edit("Player Count = " + f1 + "\nPlayer Folder Size = " + sf1 + "\nWorlds Count = " + f2 + "\nWorlds Folder Size = " + sf2);
       })});;
   }
   if (command === "maintenance")
@@ -119,13 +208,13 @@ client.on("message", async message => {
         if (err)
         return m.edit("Player Not Found!");
         m.edit('Player has been Deleted! Restarting...');
-        kill("taskkill /f /im enet.exe")
-        fs.access("enet.exe", (err) => {
+        kill(`taskkill /f /im ${config.exegtps}`)
+        fs.access(config.exegtps, (err) => {
           if (err)
           {
-          return m.edit("enet.exe Not Found! Please put this app into your gtps folder\nIf it still error, change your gtps exe, to your enet.exe")
+          return m.edit(config.exegtps + " Not Found! Please set on config.json")
           }
-            exec("start enet.exe")
+          exec(`start ${config.exegtps}`)
         });
         message.channel.send("Server has been Restarted!")
       });
@@ -141,13 +230,13 @@ client.on("message", async message => {
         if (err)
         return m.edit("World Not Found!");
         m.edit('World has been Deleted! Restarting Server...');
-        kill("taskkill /f /im enet.exe")
-        fs.access("enet.exe", (err) => {
+        kill(`taskkill /f /im ${config.exegtps}`)
+        fs.access(config.exegtps, (err) => {
           if (err)
           {
-          return m.edit("enet.exe Not Found! Please put this app into your gtps folder\nIf it still error, change your gtps exe, to your enet.exe")
+          return m.edit(config.exegtps + " Not Found! Please set on config.json")
           }
-            exec("start enet.exe")
+          exec(`start ${config.exegtps}`)
         });
         message.channel.send("Server has been Restarted!")
       });
@@ -196,14 +285,14 @@ client.on("message", async message => {
           }
         });
       m.edit("Rollback All is done! Restarting...");
-      kill("taskkill /f /im enet.exe")
-      fs.access("enet.exe", (err) => {
-        if (err)
-        {
-        return m.edit("enet.exe Not Found! Please put this app into your gtps folder\nIf it still error, change your gtps exe, to your enet.exe")
-        }
-          exec("start enet.exe")
-      });
+      kill(`taskkill /f /im ${config.exegtps}`)
+        fs.access(config.exegtps, (err) => {
+          if (err)
+          {
+          return m.edit(config.exegtps + " Not Found! Please set on config.json")
+          }
+          exec(`start ${config.exegtps}`)
+        });
         message.channel.send("Server has been Restarted!")
       }
       else
@@ -236,13 +325,13 @@ client.on("message", async message => {
           }
         });
         m.edit(`World has been Rollbacked! Restarting...`)
-        kill("taskkill /f /im enet.exe")
-        fs.access("enet.exe", (err) => {
+        kill(`taskkill /f /im ${config.exegtps}`)
+        fs.access(config.exegtps, (err) => {
           if (err)
           {
-          return m.edit("enet.exe Not Found! Please put this app into your gtps folder\nIf it still error, change your gtps exe, to your enet.exe")
+          return m.edit(`${config.exegtps} Not Found! Please set on config.json`)
           }
-            exec("start enet.exe")
+          exec(`start ${config.exegtps}`)
         });
         message.channel.send("Server has been Restarted!")
       }
@@ -276,13 +365,13 @@ client.on("message", async message => {
           }
         });
         m.edit(`player has been Rollbacked! Restarting...`)
-        kill("taskkill /f /im enet.exe")
-        fs.access("enet.exe", (err) => {
+        kill(`taskkill /f /im ${config.exegtps}`)
+        fs.access(config.exegtps, (err) => {
           if (err)
           {
-          return m.edit("enet.exe Not Found! Please put this app into your gtps folder\nIf it still error, change your gtps exe, to your enet.exe")
+          return m.edit(`${config.exegtps} Not Found! Please set on config.json`)
           }
-            exec("start enet.exe")
+          exec(`start ${config.exegtps}`)
         });
         message.channel.send("Server has been Restarted!")
       }
@@ -326,8 +415,9 @@ client.on("message", async message => {
     {
       if(!message.member.roles.cache.some(r => [config.role].includes(r.name)))
         return message.reply("Sorry, you don't have permissions to use this!");
+
         const user = args[0]
-        const gem = args[1]
+        const gems = args[1]
 
         if (args[0] == null)
         {
@@ -339,29 +429,55 @@ client.on("message", async message => {
         return message.reply(`Usage: ${pfix}givegems [Player] [Gems Amount]`)
         }
 
+        if (fs.existsSync(`./` + config.gemfolder + `/${args[0]}.txt`)) {
+
+          if (!fs.existsSync(`./` + config.gemfolder + `/${args[0]}.txt`)) {
+            return message.reply("Player not found!")
+          }
+
+          let gemdb2 = `./` + config.gemfolder + `/${args[0]}.txt`
+
+          var contents1 = fs.readFileSync(gemdb2);
+          var newgem3 = parseInt(contents1)
+          var gemargs2 = parseInt(gems)
+          newgem3 += gemargs2
+          const gemssdb =  parseInt(newgem3)
+          fs.writeFile(gemdb2, gemssdb, function() {
+            const rgemdb = fs.readFileSync(gemdb2)
+            return message.reply(`Gems has been Gived!\n\nof player named: ${args[0]}\nGems Amount: ${args[1]}\nTotal Gems: ${rgemdb}\n\nPlease Re-login for take the effect`)
+          })
+          return
+        }
+
         if (!fs.existsSync(config.player)) {
-        return message.reply("Player Folder not found! Please set on config.json")
-      }
+          return message.reply("Player Folder not found! Please set on config.json")
+        }
 
-        if (!fs.existsSync(config.player + "\\" + user + ".json")) {
-        return message.reply("Player Not Found!")
-      }
+        fs.access(`./` + config.player + `/${args[0]}.json`, fs.F_OK, (err) => {
+          if (err) {
+            return  message.reply("Player Not Found!")
+          }
 
-      let playername1 = `./` + config.player + `/${args[0]}.json`
-      let playername2 = require(playername1);
+        let playername1 = `./` + config.player + `/${args[0]}.json`
+        let playername2 = require(playername1);
+        
+          var contents = fs.readFileSync(playername1);
+          var jsonContent = JSON.parse(contents);
+          var newgem2 = parseInt(jsonContent.gems)
+          var gemargs = parseInt(gems)
+          newgem2 += gemargs
+     const gemss =  parseInt(newgem2)
 
-      const gemm =  parseInt(gem)
+      playername2.gems = gemss;
 
-      playername2.gems = gemm;
-
-      fs.writeFile(playername1, JSON.stringify(playername2), function writeJSON(err) {
-        if (err)
-          return console.log(err);
-        message.reply(`Gems has been Gived!\n\nof player named: ${args[0]}\nAmount Gems: ${args[1]}\n\nPlease Re-login for take the effect`);
+      fs.writeFile(playername1, JSON.stringify(playername2), function writeJSON() {
+          return message.reply(`Gems has been Gived!\n\nof player named: ${args[0]}\nGems Amount: ${args[1]}\nTotal Gems: ${playername2.gems}\n\nPlease Re-login for take the effect`)
         })
+      })
     }
     if (command === "givelevel")
     {
+      
       if(!message.member.roles.cache.some(r => [config.role].includes(r.name)))
         return message.reply("Sorry, you don't have permissions to use this!");
         const user = args[0]
@@ -378,26 +494,312 @@ client.on("message", async message => {
         }
 
         if (!fs.existsSync(config.player)) {
+          return message.reply("Player Folder not found! Please set on config.json")
+        }
+
+        fs.access(`./` + config.player + `/${args[0]}.json`, fs.F_OK, (err) => {
+          if (err) {
+            return  message.reply("Player Not Found!")
+          }
+
+        let playername1 = `./` + config.player + `/${args[0]}.json`
+        let playername2 = require(playername1);
+
+        
+        
+          var contents = fs.readFileSync(playername1);
+          var jsonContent = JSON.parse(contents);
+          var newlev2 = parseInt(jsonContent.level)
+          var levargs = parseInt(levels)
+          newlev2 += levargs
+     const levelss =  parseInt(newlev2)
+
+      playername2.level = levelss;
+
+      fs.writeFile(playername1, JSON.stringify(playername2), function writeJSON() {
+          return message.reply(`Level has been Gived!\n\nof player named: ${args[0]}\nGive Level: ${args[1]}\nTotal Level: ${playername2.level}\n\nPlease Re-login for take the effect`)
+        })
+      })
+    }
+
+    if (command === "giverole")
+    {
+      if(!message.member.roles.cache.some(r => [config.role].includes(r.name)))
+        return message.reply("Sorry, you don't have permissions to use this!");
+
+        const user = args[0]
+        const role = args[1]
+
+      if (user == null)
+      {
+      return message.reply(`Command = ${config.prefix}giverole [Player] [Role Number]`)
+      }
+      if (role == null)
+      {
+      return message.reply(`Command = ${config.prefix}giverole [Player] [Role Number]`)
+      }
+      
+      if (!fs.existsSync(config.player)) {
         return message.reply("Player Folder not found! Please set on config.json")
       }
 
         if (!fs.existsSync(config.player + "\\" + user + ".json")) {
         return message.reply("Player Not Found!")
       }
-
       let playername1 = `./` + config.player + `/${args[0]}.json`
       let playername2 = require(playername1);
 
-     const levelss =  parseInt(levels)
+      const rolenum =  parseInt(role)
 
-      playername2.level = levelss;
+      playername2.adminLevel = rolenum;
 
       fs.writeFile(playername1, JSON.stringify(playername2), function writeJSON(err) {
         if (err)
           return console.log(err);
-        message.reply(`Level has been Gived!\n\nof player named: ${args[0]}\nGive Level: ${args[1]}\n\nPlease Re-login for take the effect`);
+        return message.reply(`Role has been Gived!\n\nof player named: ${args[0]}\nGive Role Number: ${args[1]}\n\nPlease Re-login for take the effect`);
         })
+      }
+      if(command === "showgem") {
+        let user = args[0]
+        if (user == null)
+        {
+          return message.reply(`Command = ${config.prefix}showgem [Player]`)
+        }
+
+        if (fs.existsSync(`./` + config.gemfolder + `/${args[0]}.txt`))
+        {
+          if (!fs.existsSync(`./` + config.gemfolder + `/${args[0]}.txt`)) {
+            return message.reply("Player not found!")
+          }
+
+          let gemdb1 = `./` + config.gemfolder + `/${args[0]}.txt`
+
+          if (!fs.existsSync(gemdb1)) {
+            return message.reply("Player not found!")
+          }
+
+          var sgem = fs.readFileSync(gemdb1);
+
+          return message.reply(`${user} Have ${sgem} Gems!`)
+        }
+        
+        if (!fs.existsSync(config.player)) {
+          return message.reply("Player Folder not found! Please set on config.json")
+        }
+
+        fs.access(`./` + config.player + `/${args[0]}.json`, fs.F_OK, (err) => {
+          if (err) {
+            return  message.reply("Player Not Found!")
+          }
+
+        let playername1 = `./` + config.player + `/${args[0]}.json`
+        let playername2 = require(playername1);
+
+        var contents = fs.readFileSync(playername1);
+          var jsonContent = JSON.parse(contents);
+          var sgem = parseInt(jsonContent.gems)
+          return message.reply(`${user} Have ${sgem} Gems!`)
+        })
+       }
+      if (command === "givexp")
+      {
+        if(!message.member.roles.cache.some(r => [config.role].includes(r.name)))
+        return message.reply("Sorry, you don't have permissions to use this!");
+        const user = args[0]
+        const xp = args[1]
+
+        if (args[0] == null)
+        {
+        return message.reply(`Usage: ${pfix}givexp [Player] [Amount XP]`)
+        }
+
+        if (args[1] == null)
+        {
+        return message.reply(`Usage: ${pfix}givexp [Player] [Amount XP]`)
+        }
+
+        if (!fs.existsSync(config.player)) {
+          return message.reply("Player Folder not found! Please set on config.json")
+        }
+
+        fs.access(`./` + config.player + `/${args[0]}.json`, fs.F_OK, (err) => {
+          if (err) {
+            return  message.reply("Player Not Found!")
+          }
+
+        let playername1 = `./` + config.player + `/${args[0]}.json`
+        let playername2 = require(playername1);
+
+          var contents = fs.readFileSync(playername1);
+          var jsonContent = JSON.parse(contents);
+          var newxp2 = parseInt(jsonContent.xp)
+          var xpargs = parseInt(xp)
+          newxp2 += xpargs
+     const xpss =  parseInt(newxp2)
+
+      playername2.xp = xpss;
+
+      fs.writeFile(playername1, JSON.stringify(playername2), function writeJSON() {
+          return message.reply(`XP has been Gived!\n\nof player named: ${args[0]}\nGive XP: ${args[1]}\nTotal XP: ${playername2.xp}\n\nPlease Re-login for take the effect`)
+        })
+      })
+      }
+      if(command === "showxp") {
+        let user = args[0]
+        if (user == null)
+        {
+          return message.reply(`Command = ${config.prefix}showxp [Player]`)
+        }
+
+        fs.access(`./` + config.player + `/${args[0]}.json`, fs.F_OK, (err) => {
+          if (err) {
+            return  message.reply("Player Not Found!")
+          }
+
+        let playername1 = `./` + config.player + `/${args[0]}.json`
+        let playername2 = require(playername1);
+
+        var contents = fs.readFileSync(playername1);
+          var jsonContent = JSON.parse(contents);
+          var sxp = parseInt(jsonContent.xp)
+          return message.reply(`${user} Have ${sxp} XP!`)
+        })
+       }
+       if(command === "showlevel") {
+        let user = args[0]
+        if (user == null)
+        {
+          return message.reply(`Command = ${config.prefix}showlevel [Player]`)
+        }
+
+        fs.access(`./` + config.player + `/${args[0]}.json`, fs.F_OK, (err) => {
+          if (err) {
+            return  message.reply("Player Not Found!")
+          }
+
+        let playername1 = `./` + config.player + `/${args[0]}.json`
+        let playername2 = require(playername1);
+
+        var contents = fs.readFileSync(playername1);
+          var jsonContent = JSON.parse(contents);
+          var slevel = parseInt(jsonContent.level)
+          return message.reply(`${user} Level = ${slevel}`)
+        })
+       }
+       if (command === "editmaintenance")
+       {
+        if(!message.member.roles.cache.some(r => [config.role].includes(r.name)))
+        return message.reply("Sorry, you don't have permissions to use this!");
+
+        if (args[0] == null)
+        {
+        return message.reply(`Command = ${config.prefix}editmaintenance [Text Maintenance]`)
+        }
+
+        if (!fs.existsSync(config.sdata))
+        {
+          return message.reply("Where's the server_data.php? Please set the config.json")
+        }
+        var sdataphp = fs.readFileSync("server_data.php")
+
+        var result = sdataphp.includes("maint")
+        var result1 = sdataphp.includes("#maint")
+        if (result == true && result1 == true)
+        {
+          let file = fs.readFileSync("server_data.php", "utf8");
+          let arr = file.split(/\r?\n/);
+          arr.forEach((maint1, idx)=> {
+            if(maint1.includes("#maint|")){
+            const substr = maint1.substring(7)
+            fs.readFile("server_data.php", 'utf8', function (err, data) {
+            var result = data.replace(substr, args[0]);
+      
+        fs.writeFile("server_data.php", result, 'utf8', function (err) {
+           if (err) return console.log(err);
+           return message.reply("Maintenance has been changed!")
+        });
+      });
     }
+});
+
+}
+  if (result == true && result1 == false)
+  {
+    let file = fs.readFileSync("server_data.php", "utf8");
+    let arr = file.split(/\r?\n/);
+    arr.forEach((maint1, idx)=> {
+    if(maint1.includes("maint|")){
+    const substr = maint1.substring(6)
+    fs.readFile("server_data.php", 'utf8', function (err, data) {
+        var result = data.replace(substr, args[0]);
+      
+        fs.writeFile("server_data.php", result, 'utf8', function (err) {
+           if (err) return console.log(err);
+           return message.reply("Maintenance has been changed!")
+        });
+      });
+    }
+  });
+  }
+}
+if(command === "logs")
+  {
+    if(!message.member.roles.cache.some(r=>[config.role].includes(r.name)) )
+      return message.reply("Sorry, you don't have permissions to use this!");
+      const lread1 = args[0]
+    if (args[0] == null)
+    {
+      return message.reply(`Command = ${config.prefix}logs [File Logs.txt] (Showing Logs)\nExample: ${config.prefix}logs ban.txt`)
+    }
+
+    fs.readFile(lread1, 'utf8', function read(err, lread) {
+      if (err) {
+          return message.reply("File not Found!")
+      }  
+    return message.channel.send("```" + lread + "```");
+    });
+  }
+  if (command === "givewl")
+  {
+    if(!message.member.roles.cache.some(r=>[config.role].includes(r.name)) )
+      return message.reply("Sorry, you don't have permissions to use this!");
+      const wls = args[1]
+    if (args[0] == null)
+    {
+      return message.reply(`Command = ${config.prefix}givewl [Player] [Amount WL]`)
+    }
+
+    if (args[1] == null)
+    {
+      return message.reply(`Command = ${config.prefix}givewl [Player] [Amount WL]`)
+    }
+
+    if (!fs.existsSync(config.player)) {
+      return message.reply("Player Folder not found! Please set on config.json")
+    }
+
+    fs.access(`./` + config.player + `/${args[0]}.json`, fs.F_OK, (err) => {
+      if (err) {
+        return  message.reply("Player Not Found!")
+      }
+
+    let playername1 = `./` + config.player + `/${args[0]}.json`
+    let playername2 = require(playername1);
+
+      var contents = fs.readFileSync(playername1);
+      var jsonContent = JSON.parse(contents);
+      var newwls2 = parseInt(jsonContent.wls)
+      var wlsargs = parseInt(wls)
+      newwls2 += wlsargs
+ const wlsss =  parseInt(newwls2)
+
+  playername2.wls = wlsss;
+
+  fs.writeFile(playername1, JSON.stringify(playername2), function writeJSON() {
+      return message.reply(`WL has been Gived!\n\nof player named: ${args[0]}\nGive WL: ${args[1]}\nTotal WL: ${playername2.wls}\n\nPlease Re-login for take the effect`)
+    })
+  })
+  }
 });
 
 client.login(config.token);
