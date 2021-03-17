@@ -8,6 +8,7 @@
 <br /> Remember
 <br />Do not sell this application, because this application already open source.
 <br />Do not change Creator name, to your own name.
+<br />Do not reupload this repository and change the creator name to your name
 <br />If you see someone who sell the application or change creator name, Please DM GuckTubeYT#3123 or iFika#6127
 # How to Use
 1. Use VPS/Server Realtime For Issue Performance.
@@ -57,3 +58,5 @@
 - Added Show level
 - Added status
 - Updated count command (Added size player and worlds)
+## Version 8.1
+- Structured help command (Thanks to JadlionHD)
